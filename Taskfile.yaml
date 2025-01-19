@@ -1,0 +1,21 @@
+version: "3"
+
+
+tasks:
+  run:
+    desc: "Run docker compose"
+    cmds:
+      - docker compose up -d --build
+  stop:
+    desc: "Stop docker compose"
+    cmds:
+      - docker compose down
+
+  migrate-up:
+    desc: "Init database"
+    cmds:
+      - go run ./cmd/migrator --migrations-path=./migrations --direction=up
+  migrate-down:
+    desc: "Down database"
+    cmds:
+      - go run ./cmd/migrator --migrations-path=./migrations --direction=down
