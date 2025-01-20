@@ -3,7 +3,7 @@ package parser
 import (
 	"context"
 	"errors"
-	"github.com/Gonnekone/cryptoCrons/internal/lib/coin_api"
+	"github.com/Gonnekone/cryptoCrons/internal/lib/coin-api"
 	"github.com/Gonnekone/cryptoCrons/internal/lib/logger/sl"
 	"github.com/jackc/pgx/v5"
 	"log/slog"
@@ -67,7 +67,7 @@ func (p *Parser) Start(ctx context.Context) {
 			case <-ticker.C:
 				p.logger.Info("coins", slog.Any("coins", p.coinsToParse))
 				for coin := range p.coinsToParse {
-					price, timestamp, err := coin_api.GetCoins(p.ctx, coin)
+					price, timestamp, err := coinapi.GetCoins(p.ctx, coin)
 					if err != nil {
 						p.logger.Warn("failed to get coin price", sl.Err(err))
 

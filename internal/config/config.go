@@ -1,13 +1,10 @@
 package config
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
 	"time"
-
-	"github.com/ilyakaznacheev/cleanenv"
 )
 
 type Config struct {
@@ -32,18 +29,39 @@ type HTTPServer struct {
 }
 
 func MustLoad() *Config {
-	configPath := fetchConfigPath()
-	if configPath == "" {
-		log.Fatal("CONFIG_PATH is required")
+	timeout := getEnv("TIMEOUT")
+	to, err := time.ParseDuration(timeout)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		log.Fatalf("config file not found: %s", configPath)
+	idleTimeout := getEnv("IDLE_TIMEOUT")
+	it, err := time.ParseDuration(idleTimeout)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	var cfg Config
-	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
-		log.Fatalf("failed to read config: %v", err)
+	interval := getEnv("INTERVAL")
+	iv, err := time.ParseDuration(interval)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	cfg := Config{
+		Env: getEnv("ENV"),
+		Storage: Storage{
+			Host:     getEnv("POSTGRES_HOST"),
+			Port:     getEnv("POSTGRES_PORT"),
+			Database: getEnv("POSTGRES_DB"),
+			User:     getEnv("POSTGRES_USER"),
+			Password: getEnv("POSTGRES_PASSWORD"),
+		},
+		HTTPServer: HTTPServer{
+			Address:     getEnv("ADDRESS"),
+			Timeout:     to,
+			IdleTimeout: it,
+		},
+		Interval: iv,
 	}
 
 	return &cfg
@@ -53,22 +71,10 @@ func (s *Storage) DSN() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s", s.User, s.Password, s.Host, s.Port, s.Database)
 }
 
-// fetchConfigPath fetches config path from command line flag or environment variable.
-// Priority: flag > env > default.
-// Default value is empty string.
-func fetchConfigPath() string {
-	var res string
-
-	flag.StringVar(&res, "config", "", "path to config file")
-	flag.Parse()
-
-	if res == "" {
-		res = os.Getenv("CONFIG_PATH")
+func getEnv(key string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists || value == "" {
+		log.Fatalf("error: %s variable not found", key)
 	}
-
-	if res == "" {
-		res = "./config/local.yaml"
-	}
-
-	return res
+	return value
 }
