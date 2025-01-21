@@ -1,16 +1,13 @@
-FROM golang:alpine AS builder
+FROM golang:alpine as builder
 WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o mainApp ./cmd/cryptoCrons/main.go
-RUN go build -o mainMigrator ./cmd/migrator/migrator.go
+RUN go build -o main ./cmd/cryptoCrons/main.go
 
-FROM alpine:latest AS final
+FROM alpine:latest as final
 WORKDIR /app
-COPY --from=builder /app/mainApp .
-COPY --from=builder /app/mainMigrator .
-COPY --from=builder /app/migrations ./migrations
+COPY --from=builder /app/main .
 EXPOSE 8082
 RUN /bin/sh
-CMD ["/bin/sh", "-c", "./mainMigrator --migrations-path=./migrations --direction=up && ./mainApp"]
+CMD ["./main"]
