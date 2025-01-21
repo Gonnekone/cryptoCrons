@@ -10,12 +10,3 @@ tasks:
     desc: "Stop docker compose"
     cmds:
       - docker compose down
-
-  migrate up:
-    desc: "Init database"
-    cmds:
-      - go run ./cmd/migrator --migrations-path=./migrations --direction=up
-  migrate down:
-    desc: "Down database"
-    cmds:
-      - go run ./cmd/migrator --migrations-path=./migrations --direction=down
